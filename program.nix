@@ -14,4 +14,5 @@ pkgs.stdenv.mkDerivation {
 
   buildPhase = ''nvcc -o main src/main.cu'';
   installPhase = ''mkdir -p $out/bin && cp main $out/bin'';
+  dontFixup = true;
 }
