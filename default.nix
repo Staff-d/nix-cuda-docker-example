@@ -9,19 +9,33 @@ let
 
   program = import ./program.nix{inherit pkgs;};
 
+  dockerEntrypoint = pkgs.writeScript "entrypoint.sh" ''#!${pkgs.bash}/bin/bash
+    ${pkgs.strace}/bin/strace ${program}/bin/main
+  '';
+
+  dockerEntrypointDir = pkgs.linkFarm "entrypoint" [ { name ="entrypoint"; path=dockerEntrypoint;} ];
 
 in pkgs.dockerTools.buildImage {
     name = "awesome";
     tag = "latest";
 
     #fromImage = cuda;
-    contents = [program];
+    contents = [dockerEntrypointDir pkgs.bash pkgs.coreutils];
+
+    runAsRoot= ''#!/bin/bash
+
+    mkdir -p /usr/local/nvidia/lib
+    mkdir -p /usr/local/nvidia/lib64
+
+    '';
 
     config = {
-    #  Env= ["LD_PRELOAD=/usr/local/cuda-10.1/compat/libcuda.so.1 /usr/local/cuda-10.1/compat/libnvidia-fatbinaryloader.so.418.87.00 /usr/local/cuda-10.1/compat/libnvidia-ptxjitcompiler.so /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.418.87.00"];
-      Env= ["CUDA_VERSION=10.0.130" "NVIDIA_VISIBLE_DEVICES=all"];
-      Entrypoint = "/bin/main";
-    #  Cmd = [ "--allow-root" "--ip=0.0.0.0" ];
-    #  ExposedPorts = {"8888/tcp" = {};};
+      Env= [ "CUDA_VERSION=10.0.130" 
+             "NVIDIA_VISIBLE_DEVICES=all"
+              "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+              "LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+              "NVIDIA_REQUIRE_CUDA=cuda>=10.1 brand=tesla,driver>=384,driver<385 brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411"];
+      Entrypoint = "/entrypoint";
+      
     };
 }
