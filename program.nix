@@ -1,15 +1,15 @@
 {
-   pkgs
+   stdenv,
+   cudatoolkit
 }:
 
-pkgs.stdenv.mkDerivation {
+stdenv.mkDerivation {
   name = "nix-cuda-docker-app";
   version = "0.0.1";
   src = ./.;
 
-  nativeBuildInputs = with pkgs; [ ];
-  buildInputs = with pkgs; [
-     cudatoolkit_10
+  buildInputs = [
+     cudatoolkit
   ];
 
   buildPhase = ''nvcc -o main src/main.cu'';
