@@ -1,5 +1,5 @@
 {
-   pkgs ? null
+   pkgs
 }:
 
 pkgs.stdenv.mkDerivation {

@@ -7,35 +7,14 @@ let
     };
   };
 
-  program = import ./program.nix{inherit pkgs;};
+  cuda = pkgs.dockerTools.pullImage {
+    imageName = "nvidia/cuda";
+    finalImageTag = "10.1-runtime-ubuntu18.04";
+    finalImageName = "cuda";
+    sha256 = "0wwr9vm5hg6jmhdgdn5vywp43yk7892xwbhrrycwvbkp0jcmawh9";
+    imageDigest = "sha256:2a544a1f9e72fb4fb4cdaf8780d43a5319b749d04d8d32c7561c9f44937b628b";
+  };
 
-  dockerEntrypoint = pkgs.writeScript "entrypoint.sh" ''#!${pkgs.bash}/bin/bash
-    ${pkgs.strace}/bin/strace ${program}/bin/main
-  '';
+  my_docker = import ./test_image.nix{inherit pkgs; base_image = cuda;};
 
-  dockerEntrypointDir = pkgs.linkFarm "entrypoint" [ { name ="entrypoint"; path=dockerEntrypoint;} ];
-
-in pkgs.dockerTools.buildImage {
-    name = "awesome";
-    tag = "latest";
-
-    #fromImage = cuda;
-    contents = [dockerEntrypointDir pkgs.bash pkgs.coreutils];
-
-    runAsRoot= ''#!/bin/bash
-
-    mkdir -p /usr/local/nvidia/lib
-    mkdir -p /usr/local/nvidia/lib64
-
-    '';
-
-    config = {
-      Env= [ "CUDA_VERSION=10.0.130" 
-             "NVIDIA_VISIBLE_DEVICES=all"
-              "NVIDIA_DRIVER_CAPABILITIES=compute,utility"
-              "LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
-              "NVIDIA_REQUIRE_CUDA=cuda>=10.1 brand=tesla,driver>=384,driver<385 brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411"];
-      Entrypoint = "/entrypoint";
-      
-    };
-}
+in my_docker
