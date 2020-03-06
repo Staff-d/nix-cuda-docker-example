@@ -7,13 +7,15 @@ let
 
 in import ./buildCudaImage.nix {
 
-  buildImage = pkgs.dockerTools.buildImage;
-  cudatoolkit = cudatoolkit;
+  inherit cudatoolkit;
 
-  name = "awesome";
+  buildImage = pkgs.dockerTools.buildImage;
+  lib = pkgs.lib;
+
+  name = "awesome-cuda-"+cudatoolkit.version;
   tag = "latest";
 
-  contents = [program pkgs.bash pkgs.coreutils];
+  contents = [program];
   config = {
     Entrypoint = "/bin/main";
   };

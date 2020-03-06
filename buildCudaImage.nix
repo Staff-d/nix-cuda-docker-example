@@ -3,6 +3,7 @@
     name,
     cudatoolkit,
     buildImage,
+    lib,
     tag ? null,
     fromImage ? null,
     fromImageName ? null,
@@ -17,7 +18,9 @@
 }:
 
 let
-  cudaVersionString = "CUDA_VERSION=" + cudatoolkit.version;
+
+  cutVersion = with lib;versionString: builtins.concatStringsSep "." (map toString (builtins.genList (x: builtins.elemAt (map toList ( builtins.splitVersion versionString )) x ) 3));
+  cudaVersionString = "CUDA_VERSION=" + (cutVersion cudatoolkit.version);
 
   cudaEnv = [
     "${cudaVersionString}"
