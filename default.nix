@@ -16,8 +16,8 @@ let
     cudatoolkit_10_0
   ];
 
-  container = with pkgs.lib; map (x:  import ./test_image.nix{inherit pkgs; cudatoolkit = x;}) toolkits;
-  runScript = import ./run_script.nix {inherit pkgs;};
+  container = with pkgs.lib; map (x:  import ./testImage.nix{inherit pkgs; cudatoolkit = x;}) toolkits;
+  runScript = import ./runScript.nix {inherit pkgs;};
 
   dir = builtins.concatLists [
     (with pkgs.lib; map (x: {name = x.name; path = x;}) container) [ {name = "run-script.sh"; path = runScript;} ] ];
